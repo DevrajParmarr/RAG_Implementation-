@@ -3,7 +3,6 @@ import re
 
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
 from google.genai.errors import APIError
 
 from schemas import StandupGenerateRequest, StandupGenerated
@@ -81,13 +80,16 @@ def generate_standup(req: StandupGenerateRequest) -> StandupGenerated:
 
     client = genai.Client(api_key=api_key)
     try:
-        response = client.models.generate_content(
+        interaction = client.interactions.create(
             model=MODEL,
-            contents=_build_user_message(req),
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
-                max_output_tokens=1000,
-            ),
+            input=_build_user_message(req),
+            system_instruction=SYSTEM_PROMPT,
+            generation_config={
+                # This is straightforward text rewriting, not multi-step reasoning —
+                # keep thinking minimal so the token budget goes to visible output.
+                "thinking_level": "minimal",
+                "max_output_tokens": 1500,
+            },
         )
     except APIError as e:
         status = getattr(e, "code", 502) or 502
@@ -97,7 +99,16 @@ def generate_standup(req: StandupGenerateRequest) -> StandupGenerated:
     except Exception as e:
         raise StandupGenerationError(f"Could not reach Gemini API: {e}", status_code=502) from e
 
-    text = response.text
+    if interaction.status in ("incomplete", "budget_exceeded"):
+        raise StandupGenerationError(
+            f"Gemini response was cut off (status: {interaction.status}) before finishing — "
+            "try again, or this may need a higher max_output_tokens.",
+            status_code=502,
+        )
+    if interaction.status == "failed":
+        raise StandupGenerationError("Gemini API request failed.", status_code=502)
+
+    text = interaction.output_text
     if not text or not text.strip():
         raise StandupGenerationError("Gemini API returned an empty response.", status_code=502)
 

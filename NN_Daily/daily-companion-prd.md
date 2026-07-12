@@ -22,14 +22,15 @@ I'm a software engineer who wants a single daily habit-loop tool that:
 - **Runs on my own Windows laptop only** — no remote access, no phone access, no hosting needed. This significantly simplifies the build: no auth system, no PWA/offline requirement, no deployment story to design for.
 - Not building for a team or public release. Keep scope tight — this is a personal tool, not a product.
 
-## 3. Prerequisite: Anthropic API key
+## 3. Prerequisite: Gemini API key
 
-The standup-generation feature makes real calls to the Anthropic API, which requires an API key not yet set up. Before development starts:
+**Revised from the original Anthropic-based plan (confirmed change):** the standup-generation feature calls the Google Gemini API instead, specifically to use Google AI Studio's free tier rather than a paid API — the user's usage volume (1-2 calls/day, short prompts) is cheap on either provider, but the explicit preference was zero ongoing cost over marginally better output quality. Before development starts:
 
-1. Go to https://console.anthropic.com and sign up / log in.
-2. Add billing (a small amount of credit — standup-generation calls are short and cheap, this is not an expensive feature to run daily).
-3. Create an API key under **API Keys** in the console.
-4. Store it in a local `.env` file in the project root as `ANTHROPIC_API_KEY=sk-ant-...` — never commit this file to version control (add it to `.gitignore`).
+1. Go to Google AI Studio (aistudio.google.com) and sign in with a Google account.
+2. Create an API key (no billing/credit card required for the free tier).
+3. Store it in a local `.env` file in the project root as `GEMINI_API_KEY=...` — never commit this file to version control (add it to `.gitignore`).
+
+Free tier comes with real rate limits (requests/minute and requests/day caps) — fine for this app's volume, but worth knowing if generation ever fails with a 429.
 
 Claude Code should scaffold the project assuming this key will be supplied via `.env` and loaded server-side only (e.g. via `python-dotenv`). It must never be exposed to the frontend/browser.
 
@@ -136,7 +137,7 @@ All three outputs must be **user-editable after generation** (plain textareas, n
 This quality bar applies most strongly to the "Ideal" script, but "Simple" and "Detailed" should also read as competently written English regardless of how rough the input was.
 
 **Backend contract:**
-- `POST /api/standup/generate` — body: `{ assigned, completed, missed, extra, focus, today_todos }` → calls Anthropic Messages API server-side with the `.env` API key, model `claude-sonnet-5`, `max_tokens: 1000`. Per section 6's build order, this endpoint is the last thing wired up — earlier in the build it can return a stubbed/mock response so the UI can be built and tested without live API calls.
+- `POST /api/standup/generate` — body: `{ assigned, completed, missed, extra, focus, today_todos }` → calls the Google Gemini API server-side with the `.env` `GEMINI_API_KEY`, model `gemini-2.5-flash` (free tier via Google AI Studio — confirm this is still current, Google renames/retires model ids periodically), `max_output_tokens: 1000`. Per section 6's build order, this endpoint is the last thing wired up — earlier in the build it can return a stubbed/mock response so the UI can be built and tested without live API calls.
 - **Important lesson from the prototype:** do NOT ask the model to return JSON when the output contains multi-line bullet content — literal newlines inside JSON string values break strict JSON parsing. Use a plain delimited format instead:
   ```
   ===SIMPLE===

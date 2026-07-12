@@ -1,0 +1,103 @@
+<title>daily-companion</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<header class="topbar">
+  <div class="brand">~/daily-companion <span id="todayDate" class="dim"></span></div>
+  <div class="streak-badge">streak <span id="streakCount">0</span></div>
+</header>
+
+<div id="lockedBanner" class="locked-banner" hidden>
+  this day is wrapped &amp; read-only
+</div>
+
+<main class="layout">
+  <div class="main-col">
+
+    <section class="card">
+      <h2># todos</h2>
+      <div id="todoList" class="todo-list"></div>
+      <form id="todoForm" class="inline-form">
+        <input id="todoInput" placeholder="add a task..." autocomplete="off">
+        <button type="submit">add</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2># standup</h2>
+      <div class="field">
+        <label>assigned (last workday)</label>
+        <textarea id="su_assigned" class="human" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label>completed</label>
+        <textarea id="su_completed" class="human" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label>missed</label>
+        <textarea id="su_missed" class="human" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label>anything else (blockers, context)</label>
+        <textarea id="su_extra" class="human" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label>focus today</label>
+        <textarea id="su_focus" class="human" rows="2"></textarea>
+      </div>
+
+      <button id="generateBtn" type="button">generate</button>
+      <span id="generateStatus" class="dim"></span>
+
+      <div class="tabs" id="outputTabs">
+        <button data-tab="simple" class="tab active" type="button">simple</button>
+        <button data-tab="detailed" class="tab" type="button">detailed</button>
+        <button data-tab="ideal" class="tab" type="button">ideal</button>
+      </div>
+      <textarea id="out_simple" class="generated human" rows="6"></textarea>
+      <textarea id="out_detailed" class="generated human" rows="6" hidden></textarea>
+      <textarea id="out_ideal" class="generated human" rows="6" hidden></textarea>
+    </section>
+
+    <section class="card">
+      <h2># practice</h2>
+      <label class="checkbox-row">
+        <input type="checkbox" id="practiceDone"> did today's practice
+      </label>
+      <input id="practiceNote" class="human" placeholder="topic / problem / link (optional)">
+      <div class="dim">practiced <span id="practiceWeek">0/7</span> this week</div>
+    </section>
+
+    <section class="card">
+      <h2># eod journal</h2>
+      <div class="field"><label>what did you get done?</label><textarea id="rf_done" class="human" rows="2"></textarea></div>
+      <div class="field"><label>what did you miss?</label><textarea id="rf_missed" class="human" rows="2"></textarea></div>
+      <div class="field"><label>what did you learn?</label><textarea id="rf_learned" class="human" rows="2"></textarea></div>
+      <div class="field"><label>what could be better tomorrow?</label><textarea id="rf_better" class="human" rows="2"></textarea></div>
+      <div class="field"><label>what was given to you today?</label><textarea id="rf_assigned" class="human" rows="2"></textarea></div>
+      <div class="field"><label>backlog / carried over</label><textarea id="rf_backlog" class="human" rows="2"></textarea></div>
+      <button id="wrapBtn" type="button" class="danger">wrap up day</button>
+    </section>
+
+  </div>
+
+  <aside class="sidebar">
+    <div class="card">
+      <h3>contribution graph</h3>
+      <div id="graph" class="graph"></div>
+    </div>
+    <div class="card">
+      <h3>log</h3>
+      <div id="historyLog" class="history-log"></div>
+      <button id="loadMoreBtn" type="button">load more</button>
+    </div>
+    <div class="card">
+      <h3>maintenance</h3>
+      <label class="field-inline">archive before <input type="date" id="archiveCutoff"></label>
+      <button id="archiveBtn" type="button">archive</button>
+      <button id="deleteArchivedBtn" type="button" class="danger">delete archived permanently</button>
+      <div id="maintenanceStatus" class="dim"></div>
+    </div>
+  </aside>
+</main>
+
+<script src="/static/app.js"></script>

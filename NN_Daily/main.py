@@ -2,6 +2,8 @@ from datetime import date
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 import database
 from schemas import (
@@ -126,3 +128,12 @@ def generate_standup(req: StandupGenerateRequest):
         "Real generation is not implemented yet.",
     )
     return mock
+
+
+# Mounted last so it never shadows the /api routes registered above.
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/")
+def index():
+    return FileResponse("static/index.html")

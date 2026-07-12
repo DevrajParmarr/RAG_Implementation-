@@ -1,14 +1,19 @@
 import os
 import re
 
-import anthropic
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+from google.genai.errors import APIError
 
 from schemas import StandupGenerateRequest, StandupGenerated
 
 load_dotenv()
 
-MODEL = "claude-sonnet-5"
+# Free-tier Gemini model via Google AI Studio. Verify this is still current at
+# https://aistudio.google.com if generation starts failing with a 404 — Google
+# renames/retires model ids periodically.
+MODEL = "gemini-2.5-flash"
 
 SYSTEM_PROMPT = """You are helping a software engineer turn messy, informal notes into a spoken daily standup update.
 
@@ -65,32 +70,34 @@ def _parse_delimited(text: str) -> StandupGenerated:
 
 
 def generate_standup(req: StandupGenerateRequest) -> StandupGenerated:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise StandupGenerationError(
-            "ANTHROPIC_API_KEY is not set. Add it to a .env file in the project root "
+            "GEMINI_API_KEY is not set. Add it to a .env file in the project root "
             "(see .env.example) and restart the server.",
             status_code=500,
         )
 
-    client = anthropic.Anthropic(api_key=api_key)
+    client = genai.Client(api_key=api_key)
     try:
-        response = client.messages.create(
+        response = client.models.generate_content(
             model=MODEL,
-            max_tokens=1000,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": _build_user_message(req)}],
+            contents=_build_user_message(req),
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                max_output_tokens=1000,
+            ),
         )
-    except anthropic.RateLimitError as e:
-        raise StandupGenerationError(f"Rate limited by Anthropic API: {e}", status_code=429) from e
-    except anthropic.APIStatusError as e:
-        raise StandupGenerationError(
-            f"Anthropic API error (HTTP {e.status_code}): {e.message}", status_code=502
-        ) from e
-    except anthropic.APIConnectionError as e:
-        raise StandupGenerationError(f"Could not connect to Anthropic API: {e}", status_code=502) from e
+    except APIError as e:
+        status = getattr(e, "code", 502) or 502
+        if status == 429:
+            raise StandupGenerationError(f"Rate limited by Gemini API: {e.message}", status_code=429) from e
+        raise StandupGenerationError(f"Gemini API error (HTTP {status}): {e.message}", status_code=502) from e
+    except Exception as e:
+        raise StandupGenerationError(f"Could not reach Gemini API: {e}", status_code=502) from e
 
-    if not response.content or not response.content[0].text.strip():
-        raise StandupGenerationError("Anthropic API returned an empty response.", status_code=502)
+    text = response.text
+    if not text or not text.strip():
+        raise StandupGenerationError("Gemini API returned an empty response.", status_code=502)
 
-    return _parse_delimited(response.content[0].text)
+    return _parse_delimited(text)

@@ -137,7 +137,7 @@ All three outputs must be **user-editable after generation** (plain textareas, n
 This quality bar applies most strongly to the "Ideal" script, but "Simple" and "Detailed" should also read as competently written English regardless of how rough the input was.
 
 **Backend contract:**
-- `POST /api/standup/generate` — body: `{ assigned, completed, missed, extra, focus, today_todos }` → calls the Google Gemini API server-side with the `.env` `GEMINI_API_KEY`, model `gemini-2.5-flash` (free tier via Google AI Studio — confirm this is still current, Google renames/retires model ids periodically), `max_output_tokens: 1000`. Per section 6's build order, this endpoint is the last thing wired up — earlier in the build it can return a stubbed/mock response so the UI can be built and tested without live API calls.
+- `POST /api/standup/generate` — body: `{ assigned, completed, missed, extra, focus, today_todos }` → calls the Google Gemini API server-side with the `.env` `GEMINI_API_KEY`, model `gemini-3.5-flash` (free tier via Google AI Studio — confirm this is still current, Google renames/retires model ids periodically; `gemini-2.5-flash` was already retired for new users as of mid-2026), `max_output_tokens: 1000`. Per section 6's build order, this endpoint is the last thing wired up — earlier in the build it can return a stubbed/mock response so the UI can be built and tested without live API calls.
 - **Important lesson from the prototype:** do NOT ask the model to return JSON when the output contains multi-line bullet content — literal newlines inside JSON string values break strict JSON parsing. Use a plain delimited format instead:
   ```
   ===SIMPLE===

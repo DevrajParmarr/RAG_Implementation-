@@ -12,8 +12,9 @@ load_dotenv()
 
 # Free-tier Gemini model via Google AI Studio. Verify this is still current at
 # https://aistudio.google.com if generation starts failing with a 404 — Google
-# renames/retires model ids periodically.
-MODEL = "gemini-2.5-flash"
+# renames/retires model ids periodically (gemini-2.5-flash was retired for new
+# users as of mid-2026; gemini-3.5-flash is the current flagship Flash-tier model).
+MODEL = "gemini-3.5-flash"
 
 SYSTEM_PROMPT = """You are helping a software engineer turn messy, informal notes into a spoken daily standup update.
 

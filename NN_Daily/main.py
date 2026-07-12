@@ -13,6 +13,7 @@ from schemas import (
     StandupGenerateRequest,
     StandupGenerated,
 )
+from standup_ai import StandupGenerationError, generate_standup as call_standup_ai
 
 app = FastAPI(title="Daily Engineer Companion")
 
@@ -111,23 +112,12 @@ def delete_archived_entries():
     return {"deleted_count": database.delete_archived()}
 
 
-@app.post("/api/standup/generate")
+@app.post("/api/standup/generate", response_model=StandupGenerated)
 def generate_standup(req: StandupGenerateRequest):
-    """
-    STUB — per PRD section 6, the real Anthropic API call is wired up last (build step 3).
-    This returns a mock response in the same delimited format the real endpoint will use,
-    so the frontend (build step 2) can be built and tested without live API calls.
-    """
-    mock = StandupGenerated(
-        simple=f"- Yesterday: {req.completed or '(nothing recorded)'}\n"
-        f"- Missed: {req.missed or 'none'}\n"
-        f"- Today: {req.focus or '(no focus set)'}",
-        detailed="[stub] Detailed standup script will be generated here once the "
-        "Anthropic API integration is wired up in build step 3.",
-        ideal="[stub] This is a placeholder for the spoken-out-loud standup script. "
-        "Real generation is not implemented yet.",
-    )
-    return mock
+    try:
+        return call_standup_ai(req)
+    except StandupGenerationError as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e))
 
 
 # Mounted last so it never shadows the /api routes registered above.

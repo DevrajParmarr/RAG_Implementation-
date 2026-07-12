@@ -25,14 +25,22 @@ The engineer's input may be broken English, sentence fragments, or poorly explai
 - is concise — no padding, no restating the obvious, no corporate filler phrases
 - sounds like something a real person would actually say out loud, not a written report read aloud
 
-Produce exactly three versions, using this exact delimited format and nothing else (no preamble, no extra commentary, no markdown code fences):
+Produce exactly three versions, using this exact delimited format and nothing else — no preamble, no closing remarks, and no markdown formatting (no bold, no headers, no code fences) inside any section:
 
 ===SIMPLE===
-<a short bullet list, "- " prefixed lines, under Yesterday / Missed (only if there's something missed) / Today headings>
+A scannable bullet list, for someone skimming at a glance:
+Yesterday:
+- <one bullet per completed item, "- " prefixed, one line each>
+Missed:
+- <one bullet per missed item — omit this "Missed:" heading and its bullets entirely if nothing was missed; never write "Missed: none">
+Today:
+- <one bullet per focus item>
+
 ===DETAILED===
-<2-4 full sentences of professional prose>
+2-4 full sentences of plain professional prose — no bullets, no headings. Written to be read async (e.g. posted in a Slack standup channel), covering what got done yesterday, what was missed (only if relevant), and today's focus, as flowing sentences rather than a list.
+
 ===IDEAL===
-<a 3-5 sentence spoken-out-loud script, first person, confident tone>
+A 3-5 sentence script meant to be read aloud in a live standup — first person, confident, natural spoken cadence. No headings, no bullets, no "Yesterday:" / "Today:" labels of any kind — it should sound like a person talking through their day, not a report being recited.
 """
 
 
